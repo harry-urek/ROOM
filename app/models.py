@@ -6,14 +6,11 @@ from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
 
 
-
-
 class TimeModel(Base):
     __abstract__ = True
-    
+
     created_time = Column(DateTime, default=datetime.now(), nullable=False)
     update_time = Column(DateTime, onupdate=datetime.now())
-    
 
 
 class UserModel(TimeModel):
@@ -23,7 +20,7 @@ class UserModel(TimeModel):
     nick_name = Column(String)
     name = Column(String, nullable=False)
     public_key = Column(String)
-    email=Column(String, unique=True, nullable=False)
+    email = Column(String, unique=True, nullable=False)
     number = Column(String, unique=True, nullable=False)
     status = Column(String)
 
@@ -41,7 +38,8 @@ class UserModel(TimeModel):
 class SessionModel(TimeModel):
     __tablename__ = 'sessions'
 
-    session_id = Column(Integer, primary_key=True,autoincrement=True, index=True)
+    session_id = Column(Integer, primary_key=True,
+                        autoincrement=True, index=True)
     room_id = Column(Integer, ForeignKey('rooms.rid'))
     session_name = Column(String, nullable=False)
 
@@ -56,25 +54,25 @@ class User_Session(Base):
 
     session_id = Column(Integer, ForeignKey(
         "sessions.session_id"), primary_key=True)
-    
+
     user_id = Column(Integer, ForeignKey("users.uid"), primary_key=True)
 
 
 class Member_Model(Base):
     __tablename__ = "membership"
-    
+
     room_id = Column(Integer, ForeignKey('rooms.rid'), primary_key=True)
     user_id = Column(Integer, ForeignKey('users.uid'), primary_key=True)
 
 
 class RoomModel(TimeModel):
     __tablename__ = 'rooms'
-    
-    room_name= Column(String, nullable=False)
+
+    room_name = Column(String, nullable=False)
     rid = Column(Integer, primary_key=True, autoincrement=True, index=True)
     members = relationship(
-        "UserModel", secondary='membership', back_populates='room')
-    sessions = relationship("SessionModel", back_populates='room')
+        "UserModel", secondary='membership', back_populates='rooms')
+    sessions = relationship("SessionModel", back_populates='rooms')
 
 
 class MessageModel(TimeModel):
@@ -89,13 +87,13 @@ class MessageModel(TimeModel):
         "SessionModel", back_populates="messages", uselist=False)
 
 
-class KeyModel(Base):
-    __tablename__ = 'keys'
+# class KeyModel(Base):
+#     __tablename__ = 'keys'
 
-    kid = Column(Integer, primary_key=True, index=True)
-    uid = Column(Integer, ForeignKey('users.uid'))
-    private_key = Column(String)
-    public_key = Column(BigInteger, ForeignKey('users.pno'))
+#     kid = Column(Integer, primary_key=True, index=True)
+#     uid = Column(Integer, ForeignKey('users.uid'))
+#     private_key = Column(String)
+#     public_key = Column(BigInteger, ForeignKey('users.pno'))
 
-    # Many - One relationship with the user's pri key
-    user = relationship("UserModel", back_populates="private_key")
+#     # Many - One relationship with the user's pri key
+#     user = relationship("UserModel", back_populates="private_key")

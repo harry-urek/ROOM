@@ -51,7 +51,7 @@ def add_session(session: CreateSession, room_id: int, db: DB):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"No such Room With room id : {CreateSession.room_id} exists")
 
-    if (set(session.users) - {users.uid for _ in rooms.members}):
+    if (set(session.users) - {UserModel.uid for _ in RoomModel.members}):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Foreign Users Found in Selected Users check users",
@@ -113,3 +113,26 @@ def make_room(room: CreateRoom, db: DB):
     db.refresh(new_room)
 
     return new_room
+
+
+def get_message(message_id: int, db: DB):
+    if message := db.query(Member_Model).filter(MessageModel.mid == message_id).first():
+        return message
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Message with id: {message_id} does not exists in DB or CACHE")
+
+
+def new_message(message: Message, db: DB):
+    session_conn = get_session(message.session)
+    if not session_conn:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Invalid Session ID : {message.session}")
+
+    new_message = MessageModel(
+        sender_id=message.sender_id, mssg_encrypt=message.text, session=session_conn)
+    db.add(new_message)
+    db.commit()
+    db.refresh(new_message)
+
+    return new_message
