@@ -2,3 +2,5 @@
 server
 base
 /base
+*.vscode
+/.vscode
