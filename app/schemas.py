@@ -1,10 +1,9 @@
 from pydantic import BaseModel
 from typing import List
 
-# User
-
 
 class User(BaseModel):
+
     uid: int
     nick_name: str
     name: str
@@ -12,12 +11,22 @@ class User(BaseModel):
     status: str
     email: str
 
+    class Config:
+        orm_mode: True
+
+
+class AddUser(BaseModel):
+    room_id: int
+    user_list: List[int]
+
 
 class Session(BaseModel):
     session_id: int
     room_id: int
     session_name: str
-    users: List[User.uid]
+    users: List[User]
+
+
 # Message
 
 
@@ -26,11 +35,20 @@ class Message(BaseModel):
     sender_id: int
     session: int
     text: str
+
+    class Config:
+        orm_mode: True
+
+
 # Session
 
 
 class Session(Session):
-    messages: List[Message.mid]
+    messages: List[Message]
+
+    class Config:
+        orm_mode: True
+
 
 # Room
 
@@ -38,8 +56,12 @@ class Session(Session):
 class Room(BaseModel):
     rid: int
     room_name: str
-    members: List[User.name]
-    sessions: List[Session.session_name]
+    members: List[User]
+    sessions: List[Session]
+
+    class Config:
+        orm_mode: True
+
 
 # CreateUser
 
@@ -49,24 +71,20 @@ class CreateUser(BaseModel):
     email: str
     number: str
 
+
 # CreateSession
 
 
 class CreateSession(BaseModel):
     session_name: str
-    users: List[User.uid]
+    users: List[int]
     room_id: int
+
+
 # CreateRoom
 
 
 class CreateRoom(BaseModel):
     room_name: str
-    members: List[User.uid]
+    user_ids: List[int]
     room_size: int
-
-# class AddMessage(Message):
-
-
-# UpdateUser
-# UpdateSession
-# UpdateRoom
