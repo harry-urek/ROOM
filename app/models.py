@@ -1,6 +1,14 @@
 from .db import Base
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, BigInteger, DateTime
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Boolean,
+    ForeignKey,
+    BigInteger,
+    DateTime,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
@@ -14,7 +22,7 @@ class TimeModel(Base):
 
 
 class UserModel(TimeModel):
-    __tablename__ = 'users'
+    __tablename__ = "users"
 
     uid = Column(Integer, primary_key=True, autoincrement=True, index=True)
     nick_name = Column(String)
@@ -25,32 +33,37 @@ class UserModel(TimeModel):
     status = Column(String)
 
     # One to One relationShip with the private Key
-    public_key = relationship(
-        "KeyModel", uselist=False, back_populates="user")
+    # public_key = relationship("KeyModel", uselist=False, back_populates="user")
 
-    room = relationship("RoomModel", secondary='membership',
-                        back_populates='members')
+    rooms = relationship("RoomModel", secondary="membership",
+                         back_populates="members")
 
     sessions = relationship(
-        "SessionModel", back_populates="users", secondary="session_data")
+        "SessionModel", secondary="session_data", back_populates="users"
+    )
 
 
 class SessionModel(TimeModel):
-    __tablename__ = 'sessions'
+    __tablename__ = "sessions"
 
     session_id = Column(Integer, primary_key=True,
                         autoincrement=True, index=True)
-    room_id = Column(Integer, ForeignKey('rooms.rid'))
+    room_id = Column(Integer, ForeignKey("rooms.rid"))
     session_name = Column(String, nullable=False)
 
+    room = relationship("RoomModel", back_populates="sessions")
     users = relationship(
-        "UserModel", secondary='session_data', back_populates="sessions")
+        "UserModel", secondary="session_data", back_populates="sessions"
+    )
     # Establish a one - to - many relation with message sent in the room
-    messages = relationship("MessageModel", back_populates="session")
+    messages = relationship(
+        "MessageModel",
+        back_populates="session",
+    )
 
 
 class User_Session(Base):
-    __tablename__ = 'session_data'
+    __tablename__ = "session_data"
 
     session_id = Column(Integer, ForeignKey(
         "sessions.session_id"), primary_key=True)
@@ -61,39 +74,27 @@ class User_Session(Base):
 class Member_Model(Base):
     __tablename__ = "membership"
 
-    room_id = Column(Integer, ForeignKey('rooms.rid'), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.uid'), primary_key=True)
+    room_id = Column(Integer, ForeignKey("rooms.rid"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.uid"), primary_key=True)
 
 
 class RoomModel(TimeModel):
-    __tablename__ = 'rooms'
+    __tablename__ = "rooms"
 
     room_name = Column(String, nullable=False)
     rid = Column(Integer, primary_key=True, autoincrement=True, index=True)
     members = relationship(
-        "UserModel", secondary='membership', back_populates='rooms')
-    sessions = relationship("SessionModel", back_populates='rooms')
+        "UserModel", secondary="membership", back_populates="rooms")
+    sessions = relationship("SessionModel", back_populates="room")
 
 
 class MessageModel(TimeModel):
-    __tablename__ = 'messages'
+    __tablename__ = "messages"
 
     mid = Column(Integer, primary_key=True, index=True, autoincrement=True)
 
-    sender_id = Column(Integer, ForeignKey('users.uid'))
+    sender_id = Column(Integer, ForeignKey("users.uid"))
     mssg_encrypt = Column(String)
 
-    session = relationship(
-        "SessionModel", back_populates="messages", uselist=False)
-
-
-# class KeyModel(Base):
-#     __tablename__ = 'keys'
-
-#     kid = Column(Integer, primary_key=True, index=True)
-#     uid = Column(Integer, ForeignKey('users.uid'))
-#     private_key = Column(String)
-#     public_key = Column(BigInteger, ForeignKey('users.pno'))
-
-#     # Many - One relationship with the user's pri key
-#     user = relationship("UserModel", back_populates="private_key")
+    session_id = Column(Integer, ForeignKey("sessions.session_id"))
+    session = relationship("SessionModel", back_populates="messages")
