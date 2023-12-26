@@ -3,7 +3,6 @@ from typing import List
 
 
 class User(BaseModel):
-
     uid: int
     nick_name: str
     name: str

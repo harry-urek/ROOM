@@ -10,7 +10,7 @@ from typing import List
 DB: Session = Depends(get_db_session)
 
 
-def add_user(user: CreateUser, db: DB):  # sourcery skip: remove-unreachable-code
+def add_user(user: CreateUser, db: DB):
     """
     The function `add_user` adds a new user to the database.
 
