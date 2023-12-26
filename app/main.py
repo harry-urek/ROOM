@@ -1,7 +1,7 @@
 
 import redis
 from .ws import ConnectionManager
-from .tasks import celery
+from .tasks import celery, process_message
 from datetime import datetime
 from celery import Celery
 from fastapi.middleware.cors import CORSMiddleware
@@ -45,7 +45,7 @@ async def send_message(message: Message, db: Session = Depends(get_db_session)):
     return {"message": "Message sent for processing"}
 
 
-@app.websocket("/ws/{session_id}")
+@app.websocket("/message/{session_id}")
 async def websocket_endpoint(
     websocket: WebSocket, session_id: int, db: Session = Depends(get_db_session)
 ):

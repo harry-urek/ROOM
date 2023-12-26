@@ -10,6 +10,7 @@ celery = Celery(
     include=["app.tasks"],
 )
 
+
 @celery.task
 def process_message(message: message):
-    
+    pass
