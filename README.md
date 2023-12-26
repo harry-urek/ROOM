@@ -2,16 +2,16 @@
 
 ROOM is built with FASTAPI, Celery, Redis, and PostgreSQL. It is designed to for fast and secure chat application made with room session message concept.
 
+![Structure of the App](Utility/Arch.png)
+
+
 ## Table of Contents
 
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Configuration](#configuration)
-- [Deployment](#deployment)
-- [API Documentation](#api-documentation)
-- [Contributing](#contributing)
-- [License](#license)
+- [ROOM](#room)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Prerequisites](#prerequisites)
+  - [Getting Started](#getting-started)
 
 ## Features
 
