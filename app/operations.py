@@ -9,6 +9,8 @@ from typing import List
 
 DB: Session = Depends(get_db_session)
 
+#  Direct OP
+
 
 def add_user(user: CreateUser, db: DB):
     """
@@ -35,6 +37,9 @@ def add_user(user: CreateUser, db: DB):
 
     return db_user
 
+# Celery OPeration when a user demands another user
+# Non Celery OP if user itself requests
+
 
 def get_user(user_id: int, db: DB):
     """
@@ -57,6 +62,8 @@ def get_user(user_id: int, db: DB):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"User with id: {user_id} does not exists in DB or CACHE",
         )
+
+# Celery OP
 
 
 def get_room(room_id: int, db: DB):
@@ -81,6 +88,8 @@ def get_room(room_id: int, db: DB):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Room with id: {room_id} does not exists in DB or CACHE",
         )
+
+# celery OP
 
 
 def get_session(session_id: int, db: DB):
@@ -110,6 +119,8 @@ def get_session(session_id: int, db: DB):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Session with id: {session_id} does not exists in DB or CACHE",
         )
+
+#  Direct OP
 
 
 def add_session(session: CreateSession, db: DB):
@@ -165,28 +176,29 @@ def add_session(session: CreateSession, db: DB):
 
     return new_session
 
+# Celery Task
 
-def add_user_to_room(user: AddUser, db: DB):
+
+def add_uses_to_room(users: AddUser, db: DB):
     """
-    The function `add_user_to_room` adds users to a room in a database, checking if the room and users
-    exist before adding them.
+    The function adds users to a room in a database.
 
-    :param user: The "user" parameter is of type "AddUser", which is a custom class or data structure
-    that contains information about the user to be added to the room. It likely includes properties such
-    as the user's ID and the ID of the room they should be added to
-    :type user: AddUser
+    :param users: The parameter `users` is of type `AddUser`, which is a custom class or data structure
+    that contains a list of user IDs (`user_list`) that need to be added to a room
+    :type users: AddUser
     :param db: The "db" parameter is an instance of a database connection or session. It is used to
     query and manipulate data in the database
     :type db: DB
-    :return: the updated room object after adding the users to the room.
+    :return: the updated room object after adding the specified users to the room's members list.
     """
-    room = db.query(RoomModel).filter(RoomModel.rid == user.room_id).first()
+
+    room = db.query(RoomModel).filter(RoomModel.rid == users.room_id).first()
     if room is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Room with id: {id} does not exist",
         )
-    for user_id in user.user_list:
+    for user_id in users.user_list:
         user = db.query(UserModel).filter(UserModel.uid == user_id).first()
         if not user:
             raise HTTPException(
@@ -200,6 +212,8 @@ def add_user_to_room(user: AddUser, db: DB):
     db.refresh(room)
 
     return room
+
+#  Direct OP
 
 
 def make_room(room: CreateRoom, db: DB):
