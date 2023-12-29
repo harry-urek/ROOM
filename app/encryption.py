@@ -1,4 +1,4 @@
-import redis
+import redis  # TODO can we change it to async redis
 from fastapi import HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from cryptography.fernet import Fernet
@@ -24,15 +24,13 @@ def decrypt_message(encrypted_message: str) -> str:
     return cipher_suite.decrypt(encrypted_message).decode()
 
 
-def store_message(user_id: int, message: str, db: DB):
+async def store_message(user_id: int, message: str, db: DB, sid: int):
     # Encrypt the message
     encrypted_message = encrypt_message(message)
 
     # Store the encrypted message in the database
-    # You should replace `YourMessageModel` with your actual database model for messages
-    # Make sure the database model has fields for user_id, encrypted_message, and timestamp
     db_message = MessageModel(
-        user_id=user_id, encrypted_message=encrypted_message)
+        sender_id=user_id, mssg_encrypt=encrypted_message, session_id=sid)
     db.add(db_message)
     db.commit()
     db.refresh(db_message)
@@ -41,7 +39,7 @@ def store_message(user_id: int, message: str, db: DB):
     cache_key = f"message:{db_message.id}"
     redis_client.set(cache_key, encrypted_message)
 
-    # Set an expiration time for the cache key (e.g., 1 hour)
+    # Set an expiration time for the cache key # 1hr
     expiration_time = datetime.now() + timedelta(hours=1)
     redis_client.expireat(cache_key, expiration_time)
 

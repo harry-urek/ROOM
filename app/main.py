@@ -10,6 +10,7 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import List
 from fastapi import FastAPI, WebSocket, Depends
 from .db import get_db_session
+from .encryption import store_message
 # from .models import (
 #     UserModel,
 #     SessionModel,
@@ -38,7 +39,8 @@ manager = ConnectionManager()
 
 
 @app.post("/send_message")
-async def send_message(message: Message, db: Session = Depends(get_db_session)):
+async def send_message(session_id: int, user_id: int, message: Message, db: Session = Depends(get_db_session)):
+    await store_message(message=message, user_id=user_id, sid=session_id)
     # Save encrypted message to the database
     # Enqueue task for processing
     process_message.apply_async(args=[message], countdown=1)
