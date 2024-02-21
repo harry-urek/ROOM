@@ -1,24 +1,72 @@
+import contextlib
+from typing import AsyncIterator
 from fastapi import Depends
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker, Session
-from sqlalchemy.util.compact import contextmanager
+from sqlalchemy.ext.asyncio import (
+    AsyncConnection,
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine
+)
+from sqlalchemy.orm import declarative_base
 
-DATABASE_URL = "postgresql://user:password@database:5432/alpha"
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine)
 Base = declarative_base()
 
 
-def get_db_session():
-    session = SessionLocal()
-    try:
+class DatabaseSessionManager:
+    def __init__(self) -> None:
+        self._engine: AsyncEngine | None = None
+        self._sessionmaker: async_sessionmaker | None = None
+
+    def init(self, host: str):
+        self._engine = create_async_engine(host)
+        self._sessionmaker = async_sessionmaker(
+            autocommit=False, bind=self._engine)
+
+    async def close(self):
+        if self._engine is None:
+            raise Exception("DatabaseSessionManager is not initialized")
+        await self._engine.dispose()
+        self._engine = None
+        self._sessionmaker = None
+
+    @contextlib.asynccontextmanager
+    async def connect(self) -> AsyncIterator[AsyncConnection]:
+        if self._engine is None:
+            raise Exception("DatabaseSessionManager is not initialized")
+
+        async with self._engine.begin() as connection:
+            try:
+                yield connection
+            except Exception:
+                await connection.rollback()
+                raise
+
+    @contextlib.asynccontextmanager
+    async def session(self) -> AsyncIterator[AsyncSession]:
+        if self._sessionmaker is None:
+            raise Exception("DatabaseSessionManager is not initialized")
+
+        session = self._sessionmaker()
+        try:
+            yield session
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+    # Used for testing
+    async def create_all(self, connection: AsyncConnection):
+        await connection.run_sync(Base.metadata.create_all)
+
+    async def drop_all(self, connection: AsyncConnection):
+        await connection.run_sync(Base.metadata.drop_all)
+
+
+DB_MANAGER = DatabaseSessionManager()
+
+
+async def get_db():
+    async with DB_MANAGER.session() as session:
         yield session
-    finally:
-        session.close()
-
-
-async def add_to_db(value, db: Session = Depends(get_db_session)):
-    await db.add(value)
-    await db.commit()
-    await db.refresh()
