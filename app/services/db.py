@@ -1,5 +1,6 @@
+from fastapi import Depends
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from sqlalchemy.util.compact import contextmanager
 
 DATABASE_URL = "postgresql://user:password@database:5432/alpha"
@@ -15,3 +16,9 @@ def get_db_session():
         yield session
     finally:
         session.close()
+
+
+async def add_to_db(value, db: Session = Depends(get_db_session)):
+    await db.add(value)
+    await db.commit()
+    await db.refresh()

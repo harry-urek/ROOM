@@ -3,7 +3,7 @@ from fastapi import HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from cryptography.fernet import Fernet
 from datetime import datetime, timedelta
-from app.db import get_db_session
+from app.services.db import get_db_session, add_to_db
 from app.models import MessageModel
 
 
@@ -16,12 +16,12 @@ encryption_key = Fernet.generate_key()
 cipher_suite = Fernet(encryption_key)
 
 
-def encrypt_message(message: str) -> str:
-    return cipher_suite.encrypt(message.encode())
+async def encrypt_message(message: str) -> str:
+    return await cipher_suite.encrypt(message.encode())
 
 
-def decrypt_message(encrypted_message: str) -> str:
-    return cipher_suite.decrypt(encrypted_message).decode()
+async def decrypt_message(encrypted_message: str) -> str:
+    return await cipher_suite.decrypt(encrypted_message).decode()
 
 
 async def store_message(user_id: int, message: str, db: DB, sid: int):
@@ -31,12 +31,10 @@ async def store_message(user_id: int, message: str, db: DB, sid: int):
     # Store the encrypted message in the database
     db_message = MessageModel(
         sender_id=user_id, mssg_encrypt=encrypted_message, session_id=sid)
-    db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
+    await add_to_db(value=db_message)
 
     # Store the encrypted message in Redis cache
-    cache_key = f"message:{db_message.id}"
+    cache_key = f"message:{db_message.mid}"
     redis_client.set(cache_key, encrypted_message)
 
     # Set an expiration time for the cache key # 1hr
@@ -44,10 +42,10 @@ async def store_message(user_id: int, message: str, db: DB, sid: int):
     redis_client.expireat(cache_key, expiration_time)
 
 
-def get_message_from_cache(message_id: int) -> str:
+async def get_message_from_cachepy(message_id: int) -> str:
     cache_key = f"message:{message_id}"
     if cached_message := redis_client.get(cache_key):
-        return decrypt_message(cached_message.decode())
+        return await decrypt_message(cached_message.decode())
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

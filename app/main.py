@@ -1,6 +1,6 @@
 
 import redis
-from .ws import ConnectionManager
+from .models.services.ws import ConnectionManager
 from .tasks import celery, process_message
 from datetime import datetime
 from celery import Celery
@@ -9,8 +9,8 @@ from fastapi.responses import HTMLResponse
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from typing import List
 from fastapi import FastAPI, WebSocket, Depends
-from .db import get_db_session
-from .encryption import store_message
+from .services.db import get_db_session
+from .services.encryption import store_message
 # from .models import (
 #     UserModel,
 #     SessionModel,
@@ -21,7 +21,7 @@ from .encryption import store_message
 #     KeyModel,
 #     AddUser,
 # )
-from .schemas import Session, User, Message, Room, CreateUser, CreateSession, CreateRoom
+from .models.schemas import Session, User, Message, Room, CreateUser, CreateSession, CreateRoom
 
 app = FastAPI()
 

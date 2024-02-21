@@ -1,6 +1,6 @@
-from .db import get_db_session
+from .services.db import get_db_session
 from .models import UserModel, SessionModel, User_Session, Member_Model, RoomModel, MessageModel, KeyModel, AddUser  # noqa: F401
-from .schemas import User, Message, Room,  CreateUser, CreateSession, CreateRoom
+from .models.schemas import User, Message, Room,  CreateUser, CreateSession, CreateRoom
 
 from fastapi import Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
