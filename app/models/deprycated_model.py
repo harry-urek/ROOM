@@ -1,4 +1,5 @@
-from .db import Base
+
+from app.services.db import Base
 from datetime import datetime
 from sqlalchemy import (
     Column,
@@ -21,6 +22,8 @@ class TimeModel(Base):
     update_time = Column(DateTime, onupdate=datetime.now())
 
 
+# The `UserModel` class defines a database table for storing user information with relationships to
+# other models.
 class UserModel(TimeModel):
     __tablename__ = "users"
 
@@ -43,6 +46,8 @@ class UserModel(TimeModel):
     )
 
 
+# The `SessionModel` class defines a database table for sessions with relationships to rooms, users,
+# and messages.
 class SessionModel(TimeModel):
     __tablename__ = "sessions"
 
@@ -62,6 +67,8 @@ class SessionModel(TimeModel):
     )
 
 
+# The class `User_Session` defines a table `session_data` with columns `session_id` and `user_id` as
+# primary keys, referencing other tables `sessions` and `users` respectively.
 class User_Session(Base):
     __tablename__ = "session_data"
 
@@ -71,6 +78,7 @@ class User_Session(Base):
     user_id = Column(Integer, ForeignKey("users.uid"), primary_key=True)
 
 
+# The `Member_Model` class represents a membership table with room_id and user_id as primary keys.
 class Member_Model(Base):
     __tablename__ = "membership"
 
@@ -78,6 +86,8 @@ class Member_Model(Base):
     user_id = Column(Integer, ForeignKey("users.uid"), primary_key=True)
 
 
+# The `RoomModel` class defines a SQLAlchemy model for rooms with attributes such as room_name, rid,
+# members, and sessions.
 class RoomModel(TimeModel):
     __tablename__ = "rooms"
 
@@ -88,6 +98,8 @@ class RoomModel(TimeModel):
     sessions = relationship("SessionModel", back_populates="room")
 
 
+# The `MessageModel` class represents a message entity with attributes for message ID, sender ID,
+# encrypted message content, session ID, and a relationship with the `SessionModel` class.
 class MessageModel(TimeModel):
     __tablename__ = "messages"
 
