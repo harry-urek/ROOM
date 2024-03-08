@@ -1,26 +1,45 @@
-from typing import List, Dict
-from fastapi import WebSocket, WebSocketDisconnect
+import asyncio
+import json
+from fastapi import WebSocket
 
-# An instance  ConnectionManager() gets initiated for every webSock endpoints
-# Each user connected to that webSock endpoint will be managed by the connection manager for that
-# endpoint with each user having a websock connection stored in @connections{uid : connection} & @connected [connections]
+from app.services.cm import redisPubSub
 
 
-class ConnectionManager:
+class WebSockM:
     def __init__(self):
-        self.connections: Dict[int:WebSocket] = {}
+        self.sessions: dict = {}
+        self.pubsub_client = redisPubSub()
 
-    async def connect(self, user_id: int, session_id: int, websock: WebSocket):
-        await websock.accept()
-        self.connections[user_id] = websock
+    async def add_user_to_session(self, session_id: int, ws: WebSocket) -> None:
+        await ws.accept()
 
-    async def broadcast_message(self, data: str):
-        for _, connects in self.connections:
-            await connects.send_text(data)
+        if session_id in self.sessions:
+            self.sessions[session_id].append(ws)
+        else:
+            self.sessions[session_id] = [ws]
 
-    def total_connections(self, websock: WebSocket):
-        return len(self.connections)
+            await self.pubsub_client.connect()
+            subscriber = await self.pubsub_client.subscribe(session_id)
+            asyncio.create_task(self._pubsub_reader(subscriber)
+                                )
 
-    async def disconnect(self, uid: int, websock: WebSocket):
-        await websock.close()
-        del self.connections[uid]
+    async def broadcast(self, session_id: int, message: str):
+        await self.pubsub_client._publish(session_id, message)
+
+    async def remove_user_from_room(self, session_id: str, websocket: WebSocket) -> None:
+
+        self.rooms[session_id].remove(websocket)
+
+        if len(self.rooms[session_id]) == 0:
+            del self.rooms[session_id]
+            await self.pubsub_client.unsubscribe(session_id)
+
+    async def _pubsub_reader(self, subscriber):
+        while True:
+            message = await subscriber.get_message(ignore_subscribe_messages=True)
+            if message is not None:
+                session_id = message['channel'].decode('utf-8')
+                all_sockets = self.rooms[session_id]
+                for socket in all_sockets:
+                    data = message['data'].decode('utf-8')
+                    await socket.send_text(data)
