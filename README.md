@@ -10,19 +10,27 @@ ROOM is built with FASTAPI, Celery, Redis, and PostgreSQL. It is designed to for
 - [ROOM](#room)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
-  - [Prerequisites](#prerequisites)
   - [Getting Started](#getting-started)
+  - [](#)
+  - [TODO](#todo)
 
 ## Features
 
-- [List key features and functionalities of your project]
+- E2E Encryption based on signal protocol using Diffie Hellman Key Exchange and Elliptic Curve Key generation 
+- Auth0 Server Login and  JWT session authentication 
+- You can Create your own Interface for ROOM web client or desktop Client
+- Implement client side feature like cache and session cache according to your use
+- PUB/SUB based Web Socket which allows seamless message transfer
+- Decaying messages and decaying chat sessions 
+- Create multiple chat sessions in same Chat Room with different set of members in each
+- Response Serialization using Proto Buffer making response transfer speed super fast
 
-## Prerequisites
+<!-- ## Prerequisites
 
 Before you begin, ensure you have met the following requirements:
 
 - [List the prerequisites and dependencies needed to run your project]
-- [E.g., Python 3.x, Docker, etc.]
+- [E.g., Python 3.x, Docker, etc.] -->
 
 ## Getting Started
 
@@ -66,7 +74,7 @@ Follow these steps to get your project up and running:
     Copy code
     docker run -d -p 8000:8000 room-app
     ```
-  [Include any additional deployment methods, e.g., using Docker Compose, Kubernetes, etc.]
+  
 
 -API Documentation
   [Provide information on how to access the API documentation, e.g., Swagger or ReDoc]
@@ -79,4 +87,27 @@ Follow these steps to get your project up and running:
 License
 This project is licensed under the [License Name] License - see the LICENSE.md file for details.
 
-Feel free to customize this template to match the specifics of your project. You should provide detailed information on how to install, configure, and run your project, as well as how to contribute and access API documentation. Also, don't forget to include a license file (e.g., LICENSE.md) and specify the license used in your project.
+##
+## TODO
+- Implement auth0 authentication for login to server
+- Implement Proto Buffer
+<!-- - Complete PUB/SUB Redis backend Websocket and Test to check it working -->
+- Test DB
+- Write alembic Migration
+- Write a logger for every fastapi server user which uses redis to store logs using proto buffer log serialized in string and stored in redis using user and decrypted using signal protocol since all the server db both should be accessible from client in an E2E Encryption
+- Add Events for certain tasks like creation of user or creation of room 
+- Add things to server start startup event
+- Create Tasks for celery
+  - ClientInit() func
+  - Get User Session and Message in a Room
+  - Get All User Sessions 
+  - Get all Messages by a user
+  - Get All session for user
+  - Send File (maybe create a separate service in go for file transfer)
+  - Get User Log
+  - Create User
+  - Create Room
+  - 
+- Make Operations Async
+- Create a better Config for fastapi integrated with Docker Container and without it (if possible)
+- Add details to schemas.py and dbModel.py
