@@ -1,8 +1,7 @@
 import asyncio
-import json
 from fastapi import WebSocket
 
-from app.services.cm import redisPubSub
+from .cm import redisPubSub
 
 
 class WebSockM:
@@ -26,7 +25,7 @@ class WebSockM:
     async def broadcast(self, session_id: int, message: str):
         await self.pubsub_client._publish(session_id, message)
 
-    async def remove_user_from_room(self, session_id: str, websocket: WebSocket) -> None:
+    async def remove_user_from_session(self, session_id: str, websocket: WebSocket) -> None:
 
         self.rooms[session_id].remove(websocket)
 

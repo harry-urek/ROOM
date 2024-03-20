@@ -1,6 +1,4 @@
-# redis manager lives here
-
-import aioredis
+import redis.asyncio as aioredis
 
 
 class redisPubSub:
@@ -27,3 +25,11 @@ class redisPubSub:
 
     async def unsubscribe(self, session_id: int):
         await self.pubsub.unsubscribe(session_id)
+
+
+# RE_MANAGER = redisPubSub()
+
+
+# async def get_cache():
+#     async with RE_MANAGER._get_redis_connection() as session:
+#         yield session

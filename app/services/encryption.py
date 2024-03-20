@@ -3,11 +3,11 @@ from fastapi import HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from cryptography.fernet import Fernet
 from datetime import datetime, timedelta
-from app.services.db import get_db_session, add_to_db
+from .db import get_db, add_to_db
 from app.models import MessageModel
 
 
-DB: Session = Depends(get_db_session)
+DB: Session = Depends(get_db)
 # Assuming you have a Redis client instance
 redis_client = redis.StrictRedis(host="localhost", port=6379, db=0)
 

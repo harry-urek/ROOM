@@ -70,3 +70,10 @@ DB_MANAGER = DatabaseSessionManager()
 async def get_db():
     async with DB_MANAGER.session() as session:
         yield session
+
+
+async def add_to_db(transaction, db: AsyncSession):
+    db.add(transaction)
+    await db.commit()
+    await db.refresh(transaction)
+    return transaction

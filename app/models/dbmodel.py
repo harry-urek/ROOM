@@ -2,7 +2,7 @@ from uuid import uuid4
 from datetime import datetime
 from pytz import timezone
 from sqlalchemy import (
-    mapped_column,
+
     Integer,
     String,
     Boolean,
@@ -14,7 +14,7 @@ from sqlalchemy import (
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, Mapped
+from sqlalchemy.orm import relationship, Mapped, mapped_column
 
 from app.services.db import Base
 from typing import List, Optional, Set
@@ -23,9 +23,9 @@ from typing import List, Optional, Set
 class TimeModel(Base):
     __abstract__ = True
 
-    created_at: Mapped[Optional[datetime.datetime]] = mapped_column(
+    created_at: Mapped[Optional[DateTime]] = mapped_column(
         DateTime, server_default=func.now())
-    update_time: Mapped[Optional[datetime]] = mapped_column(
+    update_time: Mapped[Optional[DateTime]] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
