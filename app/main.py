@@ -26,9 +26,6 @@ from .services.encryption import store_message
 # )
 from .models.schemas import Session, User, Message, Room, CreateUser, CreateSession, CreateRoom
 
-# parser = argparse.ArgumentParser()
-# parser.add_argument("-p", "--port", default=8000, type=int)
-# args = parser.parse_args()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("ROOM SERVE")
@@ -37,7 +34,7 @@ logger = logging.getLogger("ROOM SERVE")
 app = FastAPI()
 socket_manager = WebSockM()
 
-
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # can alter with time
@@ -53,6 +50,9 @@ app.add_middleware(
 #     # Enqueue task for processing
 #     process_message.apply_async(args=[message], countdown=1)
 #     return {"message": "Message sent for processing"}
+@app.get("/")
+def root():
+    return {"Connected to FastAPI ROOM SERVER"}
 
 
 @app.websocket_route("/message/{session_id}")
@@ -67,6 +67,3 @@ async def session_box(webS: WebSocket, session_id: str, user_id: int,  db: Async
 
     except WebSocketDisconnect:
         await socket_manager.remove_user_from_session(session_id, webS)
-
-# if __name__ == "__main__":
-#     uvicorn.run("main:app", host="127.0.0.1", port=args.port, reload=True)

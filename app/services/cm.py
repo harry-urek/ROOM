@@ -1,4 +1,5 @@
 import redis.asyncio as aioredis
+from ..config import config
 
 
 class redisPubSub:
@@ -27,7 +28,7 @@ class redisPubSub:
         await self.pubsub.unsubscribe(session_id)
 
 
-# RE_MANAGER = redisPubSub()
+RD_MANAGER = redisPubSub(config.RD_HOST, config.RD_PORT)
 
 
 # async def get_cache():

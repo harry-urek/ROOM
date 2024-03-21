@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import declarative_base
 
+from app.config import config
+
 Base = declarative_base()
 
 
@@ -65,6 +67,7 @@ class DatabaseSessionManager:
 
 
 DB_MANAGER = DatabaseSessionManager()
+DB_MANAGER.init(config.DB_CONFIG)
 
 
 async def get_db():

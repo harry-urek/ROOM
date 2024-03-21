@@ -1,13 +1,13 @@
 import asyncio
 from fastapi import WebSocket
 
-from .cm import redisPubSub
+from .cm import RD_MANAGER as redisPubSub
 
 
 class WebSockM:
     def __init__(self):
         self.sessions: dict = {}
-        self.pubsub_client = redisPubSub()
+        self.pubsub_client = redisPubSub
 
     async def add_user_to_session(self, session_id: int, ws: WebSocket) -> None:
         await ws.accept()
