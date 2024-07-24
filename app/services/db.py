@@ -21,7 +21,7 @@ class DatabaseSessionManager:
         self._sessionmaker: async_sessionmaker | None = None
 
     def init(self, host: str):
-        self._engine = create_async_engine(host)
+        self._engine = create_async_engine(host, pool_size=10, max_overflow=0)
         self._sessionmaker = async_sessionmaker(
             autocommit=False, bind=self._engine)
 
