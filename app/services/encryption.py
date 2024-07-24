@@ -16,12 +16,12 @@ encryption_key = Fernet.generate_key()
 cipher_suite = Fernet(encryption_key)
 
 
-async def encrypt_message(message: str) -> str:
-    return await cipher_suite.encrypt(message.encode())
+def encrypt_message(message: str) -> str:
+    return cipher_suite.encrypt(message.encode())
 
 
-async def decrypt_message(encrypted_message: str) -> str:
-    return await cipher_suite.decrypt(encrypted_message).decode()
+def decrypt_message(encrypted_message: str) -> str:
+    return cipher_suite.decrypt(encrypted_message).decode()
 
 
 async def store_message(user_id: int, message: str, db: DB, sid: int):
