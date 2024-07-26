@@ -1,8 +1,10 @@
+import enum
 from uuid import uuid4
 from datetime import datetime
 from pytz import timezone
 from sqlalchemy import (
 
+    Enum,
     Integer,
     String,
     Boolean,
@@ -37,10 +39,12 @@ class UserModel(TimeModel):
         primary_key=True, autoincrement=True, index=True)
     nick_name: Mapped[str]
     name: Mapped[str] = mapped_column(nullable=False)
-    public_key: Mapped[str]
+    public_key: Mapped[str] = mapped_column()
+
     email: Mapped[str] = mapped_column(unique=True, nullable=False)
     number: Mapped[str] = mapped_column(unique=True, nullable=False)
-    status: Mapped[str]
+    user_status: Mapped["UserStatus"] = relationship(
+        uselist=False, back_populates="user")
 
     # One to One relationShip with the private Key
     # public_key = relationship("KeyModel", uselist=False, back_populates="user")
@@ -52,16 +56,30 @@ class UserModel(TimeModel):
                                                          )
 
 
+class UserStatus(Base):
+    __tablename__ = 'user_status'
+    uid: Mapped[int] = mapped_column(ForeignKey('users.uid'), primary_key=True)
+    last_message_id: Mapped[int] = mapped_column(ForeignKey('messages.mid'))
+    pfp_display: Mapped[bool] = mapped_column()
+    last_seen: Mapped[DateTime] = mapped_column()
+    active: Mapped[bool] = mapped_column()
+    last_session_id: Mapped[int] = mapped_column(
+        ForeignKey('sessions.session_id'))
+
+
 class SessionModel(TimeModel):
     __tablename__ = "sessions"
 
     session_id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, index=True
     )
-    session_name: Mapped[int] = mapped_column(nullable=False)
+    room_id: Mapped[int] = mapped_column(ForeignKey('room.rid'))
+    session_name: Mapped[str] = mapped_column(nullable=False)
+    creator: Mapped[int] = mapped_column(
+        ForeignKey('users.uid'), nullable=False)
 
     rooms: Mapped[Set["RoomModel"]] = relationship(back_populates="sessions")
-    users: Mapped[Set["UserModel"]] = relationship(secondary="session_data", back_populates="sessions"
+    users: Mapped[Set["UserModel"]] = relationship(secondary="session_data", back_populates="active_sessions"
                                                    )
     # Establish a one - to - many relation with message sent in the room
     messages: Mapped[List["MessageModel"]] = relationship(
@@ -95,9 +113,11 @@ class RoomModel(TimeModel):
     room_name: Mapped[str] = mapped_column(nullable=False)
     rid: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, index=True)
+    room_size: Mapped[int] = mapped_column(nullable=False)
+    creator_id: Mapped[int] = mapped_column(ForeignKey('users.uid'))
     members: Mapped[Set["UserModel"]] = relationship(
         secondary="membership", back_populates="rooms")
-    session: Mapped["SessionModel"] = relationship(
+    sessions: Mapped[Set["SessionModel"]] = relationship(
         back_populates="rooms")
 
 
@@ -106,11 +126,48 @@ class MessageModel(TimeModel):
 
     mid: Mapped[int] = mapped_column(
         primary_key=True, index=True, autoincrement=True)
+    order_id: Mapped[int] = mapped_column()
+    recipient_ids: Mapped[Set[int]] = mapped_column(ForeignKey('users.uid'))
+    parent_mssg_id: Mapped[int | None] = mapped_column(
+        ForeignKey('messages.mid'))
 
     sender_id: Mapped[int] = mapped_column(
         ForeignKey("users.uid"), nullable=False)
-    mssg_encrypt: Mapped[str]
+    mssg_encrypt: Mapped[str] = mapped_column()
     room_id: Mapped[int] = mapped_column(
         ForeignKey("rooms.rid"), nullable=False)
     session_id: Mapped[int] = mapped_column(ForeignKey("sessions.session_id"))
-    room: Mapped["RoomModel"] = relationship(back_populates="messages")
+    session: Mapped["SessionModel"] = relationship(back_populates="messages")
+    status: Mapped["MessageStatus"] = relationship(
+        uselist=False, back_populates="status")
+
+
+class MessageStatusEnum(enum.Enum):
+    sent = "sent"
+    received = "received"
+    read = "read"
+
+
+class MessageStatus(Base):
+    __tablename__ = 'message_status'
+    mid: Mapped[int] = mapped_column(
+        ForeignKey('messages.mid'), primary_key=True)
+    delivery: Mapped[MessageStatusEnum] = mapped_column(
+        Enum(MessageStatusEnum))
+    group_msg: Mapped[bool] = mapped_column()
+    message = relationship("Message", back_populates="status")
+
+
+class SessionStatus(Base):
+    __tablename__ = 'session_status'
+    sid: Mapped[int] = mapped_column(ForeignKey(
+        'sessions.session_id'), primary_key=True)
+    active: Mapped[bool] = mapped_column()
+    creator: Mapped[int] = mapped_column(ForeignKey('users.user_id'))
+    group: Mapped[bool] = mapped_column()
+    life: Mapped[int] = mapped_column()
+    # Could store as JSON or comma-separated string
+    active_users: Mapped[Set[int]] = mapped_column(ForeignKey('users.uid'))
+    active_user_count: Mapped[int] = mapped_column()
+    session = relationship("Session", back_populates="session_status")
+    creator_user = relationship("User", foreign_keys=[creator])
